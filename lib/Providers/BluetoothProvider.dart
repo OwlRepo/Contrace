@@ -39,17 +39,19 @@ class BluetoothProvider with ChangeNotifier {
 
   Future<List<BluetoothInfoModel>> searchForDevices() async {
     scanResults.clear();
-    Fluttertoast.showToast(
-      msg: 'Scanning',
-      backgroundColor: Colors.blue,
-      textColor: Colors.white,
-      gravity: ToastGravity.BOTTOM,
-      fontSize: 16.0,
-      timeInSecForIosWeb: 5,
-      toastLength: Toast.LENGTH_SHORT,
-    );
+
     isOn = await flutterBlue.isOn;
     if (isOn == true) {
+      Fluttertoast.showToast(
+        msg: 'Scanning',
+        backgroundColor: Colors.blue,
+        textColor: Colors.white,
+        gravity: ToastGravity.BOTTOM,
+        fontSize: 16.0,
+        timeInSecForIosWeb: 5,
+        toastLength: Toast.LENGTH_SHORT,
+      );
+
       try {
         bluetoothScan.startScan(pairedDevices: false);
         bluetoothScan.devices.distinct().listen(
@@ -65,16 +67,14 @@ class BluetoothProvider with ChangeNotifier {
             }
           },
         );
-        bluetoothScan.devices.toList().then((v) {
-          print("number of devices: ${v.length}");
-        });
       } catch (e) {
         print(e);
       }
       Future.delayed(
-        Duration(seconds: 15),
+        Duration(seconds: 5),
         () async {
           await bluetoothScan.stopScan();
+          bluetoothScan.devices.drain();
           Fluttertoast.showToast(
             msg: 'Scanning stopped',
             backgroundColor: Colors.blue,
@@ -87,7 +87,15 @@ class BluetoothProvider with ChangeNotifier {
         },
       );
     } else {
-      print('BLE:OFF');
+      Fluttertoast.showToast(
+        msg: 'Bluetooth is disabled',
+        backgroundColor: Colors.blue,
+        textColor: Colors.white,
+        gravity: ToastGravity.BOTTOM,
+        fontSize: 16.0,
+        timeInSecForIosWeb: 5,
+        toastLength: Toast.LENGTH_SHORT,
+      );
     }
     notifyListeners();
     return scanResults;
