@@ -38,30 +38,52 @@ class BluetoothProvider with ChangeNotifier {
   }
 
   Future<List<BluetoothInfoModel>> searchForDevices() async {
-    scanResults.clear();
-    while (isOn == true) {
-      try {
-        bluetoothScan.startScan(pairedDevices: false);
-        bluetoothScan.devices.distinct().listen(
-          (device) {
-            if (device != null) {
-              if (device.name != null) {
-                scanResults.add(
-                  BluetoothInfoModel(
-                    deviceName: device.name,
-                    deviceBLEID: device.address,
-                    isDeviceNearby: device.nearby,
-                  ),
+    Timer.run(
+      () {
+        Timer.periodic(
+          Duration(seconds: 10),
+          (timer) {
+            List<BluetoothInfoModel> deviceInfo = [];
+            if (isOn == true) {
+              try {
+                Fluttertoast.showToast(
+                  msg: 'Scanning',
                 );
+                bluetoothScan.startScan(pairedDevices: false);
+                bluetoothScan.devices.distinct().listen(
+                  (device) {
+                    if (device != null) {
+                      if (device.name != null) {
+                        deviceInfo.add(
+                          BluetoothInfoModel(
+                              deviceName: device.name,
+                              deviceBLEID: device.address,
+                              isDeviceNearby: device.nearby),
+                        );
+                      }
+                    }
+                  },
+                );
+
+                Future.delayed(
+                  Duration(seconds: 5),
+                  () async {
+                    _scanResults.clear();
+                    bluetoothScan.stopScan();
+                    _scanResults.addAll(Set.of(deviceInfo).toList());
+                    notifyListeners();
+                    Fluttertoast.showToast(
+                      msg: 'Done!',
+                    );
+                  },
+                );
+              } catch (e) {
+                print(e);
               }
             }
           },
         );
-      } catch (e) {
-        print(e);
-      }
-      notifyListeners();
-      return scanResults;
-    }
+      },
+    );
   }
 }

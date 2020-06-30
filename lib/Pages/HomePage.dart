@@ -1,3 +1,6 @@
+import 'dart:collection';
+
+import 'package:contrace/Models/BluetoothInfoModel.dart';
 import 'package:contrace/Providers/BluetoothProvider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
@@ -13,7 +16,6 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final bleProvider = Provider.of<BluetoothProvider>(context);
     bleProvider.checkBLEStatus();
-
     return SafeArea(
       child: Container(
         decoration: BoxDecoration(color: Colors.white),
@@ -112,10 +114,33 @@ class HomePage extends StatelessWidget {
                           right: 30.0,
                         ),
                         child: ListView.builder(
-                          itemCount: bleProvider.scanResults.length,
+                          itemCount:
+                              bleProvider.scanResults.toSet().toSet().length,
                           itemBuilder: (context, index) {
-                            return Text(
-                              '${bleProvider.scanResults[index].deviceName}',
+                            return Card(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20.0),
+                              ),
+                              color: Colors.blue,
+                              child: ListTile(
+                                leading: Icon(
+                                  Icons.bluetooth,
+                                  color: Colors.white,
+                                  size: 35.0,
+                                ),
+                                title: Text(
+                                  '${bleProvider.scanResults[index].deviceName}',
+                                  style: TextStyle(
+                                    fontSize: 15.0,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  '${bleProvider.scanResults[index].deviceBLEID}',
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 10.0),
+                                ),
+                              ),
                             );
                           },
                         ),
