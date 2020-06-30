@@ -13,7 +13,7 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final bleProvider = Provider.of<BluetoothProvider>(context);
     bleProvider.checkBLEStatus();
-    List scanResults = bleProvider.scanResults;
+
     return SafeArea(
       child: Container(
         decoration: BoxDecoration(color: Colors.white),
@@ -71,9 +71,8 @@ class HomePage extends StatelessWidget {
                       ),
                     ),
                     FlatButton(
-                      onPressed: () async {
-                        scanResults.clear();
-                        await bleProvider.searchForDevices();
+                      onPressed: () {
+                        bleProvider.searchForDevices();
                       },
                       child: Text('Scan bluetooth connection'),
                     ),
@@ -115,33 +114,8 @@ class HomePage extends StatelessWidget {
                         child: ListView.builder(
                           itemCount: bleProvider.scanResults.length,
                           itemBuilder: (context, index) {
-                            return Card(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(20.0),
-                                ),
-                              ),
-                              color: bleProvider
-                                          .scanResults[index].isDeviceNearby ==
-                                      true
-                                  ? Colors.red
-                                  : Colors.blue,
-                              child: ListTile(
-                                onTap: () => bleProvider.scanResults.clear(),
-                                leading: Icon(
-                                  Icons.bluetooth,
-                                  size: 35.0,
-                                  color: Colors.white,
-                                ),
-                                title: Text(
-                                  '${bleProvider.scanResults[index].deviceName}',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                subtitle: Text(
-                                  '${bleProvider.scanResults[index].deviceBLEID}',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              ),
+                            return Text(
+                              '${bleProvider.scanResults[index].deviceName}',
                             );
                           },
                         ),

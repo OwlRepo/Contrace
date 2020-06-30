@@ -13,9 +13,9 @@ class BluetoothProvider with ChangeNotifier {
   List<BluetoothInfoModel> _scanResults = [];
   String bluetoothStateMSG = 'Checking your Bluetooth status';
   Colors get isNearby => _isNearby;
-  List get scanResults => _scanResults;
+  List<BluetoothInfoModel> get scanResults => _scanResults;
 
-  set scanResults(List items) {
+  set scanResults(List<BluetoothInfoModel> items) {
     _scanResults = items;
     notifyListeners();
   }
@@ -39,30 +39,20 @@ class BluetoothProvider with ChangeNotifier {
 
   Future<List<BluetoothInfoModel>> searchForDevices() async {
     scanResults.clear();
-
-    isOn = await flutterBlue.isOn;
-    if (isOn == true) {
-      Fluttertoast.showToast(
-        msg: 'Scanning',
-        backgroundColor: Colors.blue,
-        textColor: Colors.white,
-        gravity: ToastGravity.BOTTOM,
-        fontSize: 16.0,
-        timeInSecForIosWeb: 5,
-        toastLength: Toast.LENGTH_SHORT,
-      );
-
+    while (isOn == true) {
       try {
         bluetoothScan.startScan(pairedDevices: false);
         bluetoothScan.devices.distinct().listen(
           (device) {
             if (device != null) {
               if (device.name != null) {
-                scanResults.add(BluetoothInfoModel(
-                  deviceName: device.name,
-                  deviceBLEID: device.address,
-                  isDeviceNearby: device.nearby,
-                ));
+                scanResults.add(
+                  BluetoothInfoModel(
+                    deviceName: device.name,
+                    deviceBLEID: device.address,
+                    isDeviceNearby: device.nearby,
+                  ),
+                );
               }
             }
           },
@@ -70,34 +60,8 @@ class BluetoothProvider with ChangeNotifier {
       } catch (e) {
         print(e);
       }
-      Future.delayed(
-        Duration(seconds: 5),
-        () async {
-          await bluetoothScan.stopScan();
-          bluetoothScan.devices.drain();
-          Fluttertoast.showToast(
-            msg: 'Scanning stopped',
-            backgroundColor: Colors.blue,
-            textColor: Colors.white,
-            gravity: ToastGravity.BOTTOM,
-            fontSize: 16.0,
-            timeInSecForIosWeb: 5,
-            toastLength: Toast.LENGTH_SHORT,
-          );
-        },
-      );
-    } else {
-      Fluttertoast.showToast(
-        msg: 'Bluetooth is disabled',
-        backgroundColor: Colors.blue,
-        textColor: Colors.white,
-        gravity: ToastGravity.BOTTOM,
-        fontSize: 16.0,
-        timeInSecForIosWeb: 5,
-        toastLength: Toast.LENGTH_SHORT,
-      );
+      notifyListeners();
+      return scanResults;
     }
-    notifyListeners();
-    return scanResults;
   }
 }
