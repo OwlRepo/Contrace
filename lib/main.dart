@@ -1,3 +1,4 @@
+import 'package:contrace/Providers/AccelerometerProvider.dart';
 import 'package:contrace/Providers/BluetoothProvider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,15 +8,22 @@ import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
   requestPermissions();
+  AccelerometerProvider acMeterProvider = AccelerometerProvider();
+  acMeterProvider.getAccelerometerInfo();
+
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => BluetoothProvider()),
+        ChangeNotifierProvider(
+          create: (context) => AccelerometerProvider(),
+        )
       ],
       child: MyApp(),
     ),
