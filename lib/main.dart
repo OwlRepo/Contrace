@@ -15,8 +15,9 @@ void main() async {
   ]);
   requestPermissions();
   AccelerometerProvider acMeterProvider = AccelerometerProvider();
-  acMeterProvider.getAccelerometerInfo();
-
+  BluetoothProvider bluetoothProvider = BluetoothProvider();
+  acMeterProvider.dispose();
+  bluetoothProvider.dispose();
   runApp(
     MultiProvider(
       providers: [

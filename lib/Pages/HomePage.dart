@@ -1,5 +1,6 @@
 import 'dart:collection';
 
+import 'package:contrace/Models/AccelerometerModel.dart';
 import 'package:contrace/Models/BluetoothInfoModel.dart';
 import 'package:contrace/Providers/AccelerometerProvider.dart';
 import 'package:contrace/Providers/BluetoothProvider.dart';
@@ -26,7 +27,7 @@ class HomePage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              flex: 3,
+              flex: 5,
               child: Container(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
@@ -94,12 +95,15 @@ class HomePage extends StatelessWidget {
                       ),
                     ),
                     Center(
-                      child: StreamBuilder(
-                        initialData: ['Setting up'],
+                      child: StreamBuilder<List<AccelerometerModel>>(
                         stream: acMeterProvider.getAccelerometerInfo(),
                         builder: (context, snapshot) {
-                          return Text(
-                              'X-Axis: ${acMeterProvider.scannedResults[0].xAxis.roundToDouble()} \n Y-Axis: ${acMeterProvider.scannedResults[0].yAxis.roundToDouble()}');
+                          if (snapshot.hasData) {
+                            return Text(
+                                'X-Axis: ${snapshot.data[0].xAxis.roundToDouble()} \n Y-Axis: ${snapshot.data[0].yAxis.roundToDouble()} \n Z-Axis: ${snapshot.data[0].zAxis.roundToDouble()}');
+                          } else {
+                            return Text('Loading...');
+                          }
                         },
                       ),
                     ),

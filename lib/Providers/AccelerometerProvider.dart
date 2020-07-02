@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:contrace/Models/AccelerometerModel.dart';
 import 'package:sensors/sensors.dart';
+import 'BluetoothProvider.dart';
 
 class AccelerometerProvider with ChangeNotifier {
   List<StreamSubscription<AccelerometerEvent>> accelerometerInfo = [];
@@ -21,5 +22,6 @@ class AccelerometerProvider with ChangeNotifier {
         },
       ),
     );
+    yield scannedResults;
   }
 }
