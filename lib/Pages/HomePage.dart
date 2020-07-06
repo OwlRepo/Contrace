@@ -100,7 +100,7 @@ class HomePage extends StatelessWidget {
                         builder: (context, snapshot) {
                           if (snapshot.hasData) {
                             return Text(
-                                'X-Axis: ${snapshot.data[0].xAxis.roundToDouble()} \n Y-Axis: ${snapshot.data[0].yAxis.roundToDouble()} \n Z-Axis: ${snapshot.data[0].zAxis.roundToDouble()}');
+                                'X-Axis: ${snapshot.data[0].xAxis.floorToDouble()} \n Y-Axis: ${snapshot.data[0].yAxis.floorToDouble()} \n Z-Axis: ${snapshot.data[0].zAxis.floorToDouble()}');
                           } else {
                             return Text('Loading...');
                           }

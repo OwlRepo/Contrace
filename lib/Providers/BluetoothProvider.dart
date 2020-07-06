@@ -13,12 +13,16 @@ class BluetoothProvider with ChangeNotifier {
   FlutterScanBluetooth bluetoothScan = FlutterScanBluetooth();
   AccelerometerProvider acMeterProvider = AccelerometerProvider();
 
+  int defaultTimerValue = 15;
+  double newXAxis, newYAxis, newZAxis, oldXAxis, oldYAxis, oldZAxis;
   bool isOn = false;
-  bool isUserMoving = false;
+  bool isUserMoving;
   Colors _isNearby;
   List<BluetoothInfoModel> _scanResults = [];
   String bluetoothStateMSG = 'Checking your Bluetooth status';
-  List<AccelerometerModel> _acMeterResults = List<AccelerometerModel>();
+  List<AccelerometerModel> _newACMeterResults = List<AccelerometerModel>();
+  List<AccelerometerModel> _oldACMeterResults = List<AccelerometerModel>();
+
   Colors get isNearby => _isNearby;
   List<BluetoothInfoModel> get scanResults => _scanResults;
 
@@ -45,23 +49,43 @@ class BluetoothProvider with ChangeNotifier {
   }
 
   Future<List<BluetoothInfoModel>> searchForDevices() async {
-    try {
-      getAccelerometerValue();
-      if (_acMeterResults != null) {
-        Timer.periodic(
-          Duration(seconds: 1),
-          (timer) {
-            if (timer.tick >= 2) {
-              print(_acMeterResults[0].xAxis.roundToDouble());
-            }
-            if (timer.tick == 10) {
-              timer.cancel();
-            }
-          },
-        );
+    await checkUserMovementStatus();
+  }
+
+  Future<bool> checkUserMovementStatus() {
+    getAccelerometerValue();
+    Timer.periodic(Duration(seconds: 1), (timer) {
+      if (timer.tick >= 2) {
+        newXAxis = _newACMeterResults[0].xAxis.floorToDouble();
+        newYAxis = _newACMeterResults[0].yAxis.floorToDouble();
+        newZAxis = _newACMeterResults[0].zAxis.floorToDouble();
+        oldXAxis = _oldACMeterResults[0].xAxis.floorToDouble();
+        oldYAxis = _oldACMeterResults[0].yAxis.floorToDouble();
+        oldZAxis = _oldACMeterResults[0].zAxis.floorToDouble();
+        if (newXAxis != oldXAxis) {
+          print('User is Moving');
+          isUserMoving = true;
+          print(isUserMoving);
+        } else {
+          print('User is not Moving');
+          isUserMoving = false;
+          print(isUserMoving);
+        }
+
+        if (timer.tick == 20) {
+          timer.cancel();
+        }
       }
-    } catch (e) {
-      print(e);
+      return isUserMoving;
+    });
+  }
+
+  changeDefaultTimerValue() async {
+    if (await checkUserMovementStatus()) {
+      print('Changing defaultTimerValue to 20');
+      defaultTimerValue = 20;
+    } else {
+      print('defaultTimerValue is not changed');
     }
   }
 
@@ -74,17 +98,30 @@ class BluetoothProvider with ChangeNotifier {
         if (timer.tick >= 2) {
           acMeterProvider.getAccelerometerInfo().listen(
             (event) {
-              _acMeterResults = [
+              _newACMeterResults = [
                 AccelerometerModel(
                   xAxis: event[0].xAxis.roundToDouble(),
                   yAxis: event[0].yAxis.roundToDouble(),
                   zAxis: event[0].zAxis.roundToDouble(),
                 ),
               ];
+
+              Future.delayed(
+                Duration(seconds: 2),
+                () {
+                  _oldACMeterResults = [
+                    AccelerometerModel(
+                      xAxis: event[0].xAxis.roundToDouble(),
+                      yAxis: event[0].yAxis.roundToDouble(),
+                      zAxis: event[0].zAxis.roundToDouble(),
+                    ),
+                  ];
+                },
+              );
             },
           );
         }
-        if (timer.tick == 10) {
+        if (timer.tick == 20) {
           timer.cancel();
         }
       },
@@ -122,6 +159,7 @@ class BluetoothProvider with ChangeNotifier {
             bluetoothScan.stopScan();
             bluetoothScan.devices.listen((event) {}).cancel();
             _scanResults.addAll(Set.of(deviceInfo).toList());
+            acMeterProvider.dispose();
             notifyListeners();
             Fluttertoast.showToast(
               msg: 'Done!',
@@ -166,6 +204,7 @@ class BluetoothProvider with ChangeNotifier {
             bluetoothScan.stopScan();
             bluetoothScan.devices.listen((event) {}).cancel();
             _scanResults.addAll(Set.of(deviceInfo).toList());
+            acMeterProvider.dispose();
             notifyListeners();
             Fluttertoast.showToast(
               msg: 'Done!',
