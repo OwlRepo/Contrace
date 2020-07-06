@@ -13,7 +13,7 @@ class BluetoothProvider with ChangeNotifier {
   FlutterScanBluetooth bluetoothScan = FlutterScanBluetooth();
   AccelerometerProvider acMeterProvider = AccelerometerProvider();
 
-  int defaultTimerValue = 15;
+  int defaultTimerValue = 20;
   double newXAxis, newYAxis, newZAxis, oldXAxis, oldYAxis, oldZAxis;
   bool isOn = false;
   bool isUserMoving;
@@ -49,12 +49,22 @@ class BluetoothProvider with ChangeNotifier {
   }
 
   Future<List<BluetoothInfoModel>> searchForDevices() async {
-    await checkUserMovementStatus();
+    checkUserMovementStatus();
+    Timer.periodic(Duration(seconds: defaultTimerValue), (timer) {
+      print('Timer: ' + defaultTimerValue.toString());
+      if (isUserMoving == false) {
+        changeDefaultTimerValue();
+        startScanning();
+      } else {
+        changeDefaultTimerValue();
+        startScanning();
+      }
+    });
   }
 
-  Future<bool> checkUserMovementStatus() {
-    getAccelerometerValue();
+  checkUserMovementStatus() {
     Timer.periodic(Duration(seconds: 1), (timer) {
+      getAccelerometerValue();
       if (timer.tick >= 2) {
         newXAxis = _newACMeterResults[0].xAxis.floorToDouble();
         newYAxis = _newACMeterResults[0].yAxis.floorToDouble();
@@ -65,88 +75,68 @@ class BluetoothProvider with ChangeNotifier {
         if (newXAxis != oldXAxis) {
           print('User is Moving');
           isUserMoving = true;
-          print(isUserMoving);
+          notifyListeners();
         } else {
           print('User is not Moving');
           isUserMoving = false;
-          print(isUserMoving);
-        }
-
-        if (timer.tick == 20) {
-          timer.cancel();
+          notifyListeners();
         }
       }
-      return isUserMoving;
     });
   }
 
   changeDefaultTimerValue() async {
-    if (await checkUserMovementStatus()) {
-      print('Changing defaultTimerValue to 20');
-      defaultTimerValue = 20;
+    if (isUserMoving == true) {
+      print('defaultTimerValue set to 15');
+      defaultTimerValue = 15;
     } else {
-      print('defaultTimerValue is not changed');
+      print('defaultTimerValue set to 20');
+      defaultTimerValue = 20;
     }
   }
 
   getAccelerometerValue() {
-    Timer.periodic(
-      Duration(seconds: 1),
-      (timer) {
-        acMeterProvider.getAccelerometerInfo().listen((event) {});
-        print(timer.tick);
-        if (timer.tick >= 2) {
-          acMeterProvider.getAccelerometerInfo().listen(
-            (event) {
-              _newACMeterResults = [
-                AccelerometerModel(
-                  xAxis: event[0].xAxis.roundToDouble(),
-                  yAxis: event[0].yAxis.roundToDouble(),
-                  zAxis: event[0].zAxis.roundToDouble(),
-                ),
-              ];
+    acMeterProvider.getAccelerometerInfo().listen(
+      (event) {
+        _newACMeterResults = [
+          AccelerometerModel(
+            xAxis: event[0].xAxis.roundToDouble(),
+            yAxis: event[0].yAxis.roundToDouble(),
+            zAxis: event[0].zAxis.roundToDouble(),
+          ),
+        ];
 
-              Future.delayed(
-                Duration(seconds: 2),
-                () {
-                  _oldACMeterResults = [
-                    AccelerometerModel(
-                      xAxis: event[0].xAxis.roundToDouble(),
-                      yAxis: event[0].yAxis.roundToDouble(),
-                      zAxis: event[0].zAxis.roundToDouble(),
-                    ),
-                  ];
-                },
-              );
-            },
-          );
-        }
-        if (timer.tick == 20) {
-          timer.cancel();
-        }
+        Future.delayed(
+          Duration(seconds: 3),
+          () {
+            _oldACMeterResults = [
+              AccelerometerModel(
+                xAxis: event[0].xAxis.roundToDouble(),
+                yAxis: event[0].yAxis.roundToDouble(),
+                zAxis: event[0].zAxis.roundToDouble(),
+              ),
+            ];
+          },
+        );
       },
     );
   }
 
-  startScanningEveryFive() {
+  startScanning() {
+    Fluttertoast.showToast(msg: 'Scanning...');
     List<BluetoothInfoModel> deviceInfo = [];
     if (isOn == true) {
       try {
-        Fluttertoast.showToast(
-          msg: 'Scanning',
-        );
-        bluetoothScan.startScan(pairedDevices: false);
+        bluetoothScan.startScan(pairedDevices: true);
         bluetoothScan.devices.distinct().listen(
           (device) {
             if (device != null) {
               if (device.name != null) {
-                deviceInfo.add(
-                  BluetoothInfoModel(
-                    deviceName: device.name,
-                    deviceBLEID: device.address,
-                    isDeviceNearby: device.nearby,
-                  ),
-                );
+                deviceInfo.add(BluetoothInfoModel(
+                  deviceName: device.name,
+                  deviceBLEID: device.address,
+                  isDeviceNearby: device.nearby,
+                ));
               }
             }
           },
@@ -157,54 +147,7 @@ class BluetoothProvider with ChangeNotifier {
           () async {
             _scanResults.clear();
             bluetoothScan.stopScan();
-            bluetoothScan.devices.listen((event) {}).cancel();
             _scanResults.addAll(Set.of(deviceInfo).toList());
-            acMeterProvider.dispose();
-            notifyListeners();
-            Fluttertoast.showToast(
-              msg: 'Done!',
-            );
-          },
-        );
-      } catch (e) {
-        print(e);
-      }
-    }
-  }
-
-  startScanningEveryTen() {
-    List<BluetoothInfoModel> deviceInfo = [];
-    if (isOn == true) {
-      try {
-        Fluttertoast.showToast(
-          msg: 'Scanning',
-        );
-
-        bluetoothScan.startScan(pairedDevices: false);
-        bluetoothScan.devices.distinct().listen(
-          (device) {
-            if (device != null) {
-              if (device.name != null) {
-                deviceInfo.add(
-                  BluetoothInfoModel(
-                    deviceName: device.name,
-                    deviceBLEID: device.address,
-                    isDeviceNearby: device.nearby,
-                  ),
-                );
-              }
-            }
-          },
-        );
-
-        Future.delayed(
-          Duration(seconds: 10),
-          () async {
-            _scanResults.clear();
-            bluetoothScan.stopScan();
-            bluetoothScan.devices.listen((event) {}).cancel();
-            _scanResults.addAll(Set.of(deviceInfo).toList());
-            acMeterProvider.dispose();
             notifyListeners();
             Fluttertoast.showToast(
               msg: 'Done!',
