@@ -43,10 +43,18 @@ class HomePage extends StatelessWidget {
                           onChanged: (bool e) {
                             if (e == true) {
                               SystemShortcuts.bluetooth();
-                              print('true');
+                              Fluttertoast.showToast(
+                                msg: 'Bluetooth enabled',
+                                backgroundColor: Colors.blue,
+                                textColor: Colors.white,
+                              );
                             } else {
                               SystemShortcuts.bluetooth();
-                              print('false');
+                              Fluttertoast.showToast(
+                                msg: 'Bluetooth disabled',
+                                backgroundColor: Colors.blue,
+                                textColor: Colors.white,
+                              );
                             }
                           },
                           activeColor: Colors.green,

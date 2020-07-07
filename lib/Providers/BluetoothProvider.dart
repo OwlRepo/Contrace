@@ -13,7 +13,7 @@ class BluetoothProvider with ChangeNotifier {
   FlutterScanBluetooth bluetoothScan = FlutterScanBluetooth();
   AccelerometerProvider acMeterProvider = AccelerometerProvider();
 
-  int defaultTimerValue = 20;
+  int defaultTimerValue = 15, defaultDelayValue = 5;
   double newXAxis, newYAxis, newZAxis, oldXAxis, oldYAxis, oldZAxis;
   bool isOn = false;
   bool isUserMoving;
@@ -49,17 +49,53 @@ class BluetoothProvider with ChangeNotifier {
   }
 
   Future<List<BluetoothInfoModel>> searchForDevices() async {
-    checkUserMovementStatus();
-    Timer.periodic(Duration(seconds: defaultTimerValue), (timer) {
-      print('Timer: ' + defaultTimerValue.toString());
-      if (isUserMoving == false) {
-        changeDefaultTimerValue();
-        startScanning();
-      } else {
-        changeDefaultTimerValue();
-        startScanning();
-      }
-    });
+    isOn = await flutterBlue.isOn;
+    if (isOn == true) {
+      checkUserMovementStatus();
+      print('Settings set to "Not Moving"');
+      Timer.periodic(
+        Duration(seconds: defaultTimerValue),
+        (timer) {
+          switch (isUserMoving) {
+            case false:
+              changeDefaultTimerValue();
+              startScanning();
+              break;
+            case true:
+              timer.cancel();
+              changeDefaultTimerValue();
+              Future.delayed(
+                Duration(seconds: 3),
+                () {
+                  print('Settings set to "Moving"');
+                  Timer.periodic(
+                    Duration(seconds: defaultTimerValue),
+                    (timer) {
+                      switch (isUserMoving) {
+                        case true:
+                          startScanning();
+                          break;
+                        case false:
+                          timer.cancel();
+                          changeDefaultTimerValue();
+                          searchForDevices();
+                          break;
+                      }
+                    },
+                  );
+                },
+              );
+              break;
+          }
+        },
+      );
+    } else {
+      Fluttertoast.showToast(
+        msg: 'Please enable your bluetooth',
+        backgroundColor: Colors.blue,
+        textColor: Colors.white,
+      );
+    }
   }
 
   checkUserMovementStatus() {
@@ -72,12 +108,12 @@ class BluetoothProvider with ChangeNotifier {
         oldXAxis = _oldACMeterResults[0].xAxis.floorToDouble();
         oldYAxis = _oldACMeterResults[0].yAxis.floorToDouble();
         oldZAxis = _oldACMeterResults[0].zAxis.floorToDouble();
-        if (newXAxis != oldXAxis) {
-          print('User is Moving');
+        if (newXAxis != oldXAxis ||
+            newYAxis != oldYAxis ||
+            newZAxis != oldZAxis) {
           isUserMoving = true;
           notifyListeners();
         } else {
-          print('User is not Moving');
           isUserMoving = false;
           notifyListeners();
         }
@@ -87,11 +123,15 @@ class BluetoothProvider with ChangeNotifier {
 
   changeDefaultTimerValue() async {
     if (isUserMoving == true) {
+      print('defaultTimerValue set to 10');
+      defaultTimerValue = defaultTimerValue - 5;
+      defaultDelayValue = 5;
+      notifyListeners();
+    } else {
       print('defaultTimerValue set to 15');
       defaultTimerValue = 15;
-    } else {
-      print('defaultTimerValue set to 20');
-      defaultTimerValue = 20;
+      defaultDelayValue = 5;
+      notifyListeners();
     }
   }
 
@@ -143,7 +183,7 @@ class BluetoothProvider with ChangeNotifier {
         );
 
         Future.delayed(
-          Duration(seconds: 10),
+          Duration(seconds: defaultDelayValue),
           () async {
             _scanResults.clear();
             bluetoothScan.stopScan();
@@ -157,6 +197,11 @@ class BluetoothProvider with ChangeNotifier {
       } catch (e) {
         print(e);
       }
+    }
+    if (isUserMoving == true) {
+      print('Scanning every 5 seconds');
+    } else {
+      print('Scanning every 10 seconds');
     }
   }
 }
