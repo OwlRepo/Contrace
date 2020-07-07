@@ -27,52 +27,14 @@ class HomePage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              flex: 5,
+              flex: 4,
               child: Container(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text('Bluetooth connection'),
-                        Switch(
-                          value: bleProvider.isOn,
-                          onChanged: (bool e) {
-                            if (e == true) {
-                              SystemShortcuts.bluetooth();
-                              Fluttertoast.showToast(
-                                msg: 'Bluetooth enabled',
-                                backgroundColor: Colors.blue,
-                                textColor: Colors.white,
-                              );
-                            } else {
-                              SystemShortcuts.bluetooth();
-                              Fluttertoast.showToast(
-                                msg: 'Bluetooth disabled',
-                                backgroundColor: Colors.blue,
-                                textColor: Colors.white,
-                              );
-                            }
-                          },
-                          activeColor: Colors.green,
-                        ),
-                      ],
-                    ),
-                    FlatButton(
-                      onPressed: () {
-                        bleProvider.searchForDevices();
-                      },
-                      child: Text(
-                        'Scan bluetooth connection',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      color: Colors.blue,
+                    SizedBox(
+                      height: 50.0,
                     ),
                     Center(
                       child: bleProvider.isOn == true
@@ -102,26 +64,63 @@ class HomePage extends StatelessWidget {
                         ),
                       ),
                     ),
-                    Center(
-                      child: StreamBuilder<List<AccelerometerModel>>(
-                        stream: acMeterProvider.getAccelerometerInfo(),
-                        builder: (context, snapshot) {
-                          if (snapshot.hasData) {
-                            return Text(
-                                'X-Axis: ${snapshot.data[0].xAxis.floorToDouble()} \n Y-Axis: ${snapshot.data[0].yAxis.floorToDouble()} \n Z-Axis: ${snapshot.data[0].zAxis.floorToDouble()}');
-                          } else {
-                            return Text('Loading...');
-                          }
+                    SizedBox(
+                      height: 30.0,
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text('Bluetooth connection'),
+                        Switch(
+                          value: bleProvider.isOn,
+                          onChanged: (bool e) {
+                            if (e == true) {
+                              SystemShortcuts.bluetooth();
+                              Fluttertoast.showToast(
+                                msg: 'Turning on bluetooth...',
+                                backgroundColor: Colors.blue,
+                                textColor: Colors.white,
+                              );
+                            } else {
+                              SystemShortcuts.bluetooth();
+                              Fluttertoast.showToast(
+                                msg: 'Turning off bluetooth...',
+                                backgroundColor: Colors.blue,
+                                textColor: Colors.white,
+                              );
+                            }
+                          },
+                          activeColor: Colors.green,
+                        ),
+                      ],
+                    ),
+                    SizedBox(
+                      height: 50.0,
+                      width: 100.0,
+                      child: FlatButton(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                        onPressed: () {
+                          bleProvider.searchForDevices();
                         },
+                        child: Text(
+                          'START',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18.0,
+                          ),
+                        ),
+                        color: bleProvider.isOn ? Colors.blue : Colors.grey,
                       ),
                     ),
                   ],
                 ),
               ),
             ),
-            SizedBox(height: 100.0),
             Expanded(
-              flex: 5,
+              flex: 6,
               child: Container(
                 width: MediaQuery.of(context).size.width,
                 height: 400,
@@ -129,6 +128,9 @@ class HomePage extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    SizedBox(
+                      height: 30.0,
+                    ),
                     Expanded(
                       flex: 1,
                       child: Text(

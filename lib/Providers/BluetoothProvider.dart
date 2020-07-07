@@ -18,8 +18,8 @@ class BluetoothProvider with ChangeNotifier {
   bool isOn = false;
   bool isUserMoving;
   Colors _isNearby;
-  List<BluetoothInfoModel> _scanResults = [];
   String bluetoothStateMSG = 'Checking your Bluetooth status';
+  List<BluetoothInfoModel> _scanResults = [];
   List<AccelerometerModel> _newACMeterResults = List<AccelerometerModel>();
   List<AccelerometerModel> _oldACMeterResults = List<AccelerometerModel>();
 
@@ -99,26 +99,30 @@ class BluetoothProvider with ChangeNotifier {
   }
 
   checkUserMovementStatus() {
-    Timer.periodic(Duration(seconds: 1), (timer) {
-      getAccelerometerValue();
-      if (timer.tick >= 2) {
-        newXAxis = _newACMeterResults[0].xAxis.floorToDouble();
-        newYAxis = _newACMeterResults[0].yAxis.floorToDouble();
-        newZAxis = _newACMeterResults[0].zAxis.floorToDouble();
-        oldXAxis = _oldACMeterResults[0].xAxis.floorToDouble();
-        oldYAxis = _oldACMeterResults[0].yAxis.floorToDouble();
-        oldZAxis = _oldACMeterResults[0].zAxis.floorToDouble();
-        if (newXAxis != oldXAxis ||
-            newYAxis != oldYAxis ||
-            newZAxis != oldZAxis) {
-          isUserMoving = true;
-          notifyListeners();
-        } else {
-          isUserMoving = false;
-          notifyListeners();
+    Timer.periodic(
+      Duration(seconds: 1),
+      (timer) {
+        getAccelerometerValue();
+        if (timer.tick >= 2) {
+          newXAxis = _newACMeterResults[0].xAxis.floorToDouble();
+          newYAxis = _newACMeterResults[0].yAxis.floorToDouble();
+          newZAxis = _newACMeterResults[0].zAxis.floorToDouble();
+          oldXAxis = _oldACMeterResults[0].xAxis.floorToDouble();
+          oldYAxis = _oldACMeterResults[0].yAxis.floorToDouble();
+          oldZAxis = _oldACMeterResults[0].zAxis.floorToDouble();
+
+          if (newXAxis != oldXAxis ||
+              newYAxis != oldYAxis ||
+              newZAxis != oldZAxis) {
+            isUserMoving = true;
+            notifyListeners();
+          } else {
+            isUserMoving = false;
+            notifyListeners();
+          }
         }
-      }
-    });
+      },
+    );
   }
 
   changeDefaultTimerValue() async {
